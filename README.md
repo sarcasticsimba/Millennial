@@ -23,5 +23,6 @@ To have blank text on the top or bottom, pass in an underscore (_)
     $ mill template.png no_caption.png _ ---- _
 
 If you wanna just take a look at some of the tests I cobbled together, just run
+
     $ make && make run
 
