@@ -5,7 +5,7 @@ A command line utility to generate meme-ified images from given templates.
 
 I made this since the API our chatbot was hitting was suddenly deprecated, and we (at the moment) have lost all the images we had on their server. Basically, enough hitting an API for something that can be done locally.
 
-I've still got some tweaks to make, but it's at least somewhat functional right now (because it sure isn't object oriented, I'll tell ya that).
+I've still got some tweaks to make, but it's at least somewhat functional right now (because it sure isn't object oriented, I'll tell ya that). \*ba dum tss\*
 
 ## Usage
 
