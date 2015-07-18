@@ -17,18 +17,15 @@
 #import <Foundation/Foundation.h>
 #import <Appkit/Appkit.h>
 
-#define NINETY_FIVE_PERCENT 0.95
 #define MAX_FONT_HEIGHT 0.5
 #define MAX_FONT_WIDTH  0.8
 #define MAX_FONT_SIZE 1000
 #define STROKE_WIDTH @(-5)
 #define DELIMITER @"----"
 #define GENERIC_ERROR -1
-#define IMPACT @"Impact"
 #define MINIMUM_ARGS 6
 #define BLANK @"_"
 #define SPACE @" "
-#define BOTTOM 0
 
 /*
  *  fontSizeForImageDimensions
@@ -65,7 +62,7 @@ CGFloat fontSizeForImageDimensions(NSSize dimensions, NSString *text)
     
     for (i = 1; i <= MAX_FONT_SIZE; i++) {
         font = [[NSFontManager sharedFontManager] convertWeight:YES
-                                                         ofFont:[NSFont fontWithName:IMPACT size:i]];
+                                                         ofFont:[NSFont fontWithName:@"Impact" size:i]];
         [attributes setObject:font forKey:NSFontAttributeName];
         str_size = [text sizeWithAttributes:attributes];
         
@@ -106,32 +103,27 @@ void writeTextToImage(NSImage *image, NSString *topText, NSString *bottomText)
     CGFloat xpos_t, xpos_b, ypos;
     NSFont *impact;
     
-    impact = [NSFont fontWithName:IMPACT
+    impact = [NSFont fontWithName:@"Impact"
                         size:fontSizeForImageDimensions(image.size, topText)];
-    attributes = [[NSMutableDictionary alloc]
-                    initWithObjects:@[impact,
-                                      [NSColor whiteColor],
-                                      [NSColor blackColor],
-                                      STROKE_WIDTH]
-                            forKeys:@[NSFontAttributeName,
-                                      NSForegroundColorAttributeName,
-                                      NSStrokeColorAttributeName,
-                                      NSStrokeWidthAttributeName]];
+    attributes = [@{            NSFontAttributeName : impact,
+                     NSForegroundColorAttributeName : [NSColor whiteColor],
+                         NSStrokeColorAttributeName : [NSColor blackColor],
+                         NSStrokeWidthAttributeName : STROKE_WIDTH } mutableCopy];
     
     topTextAttributes = [[NSDictionary alloc] initWithDictionary:attributes];
     
-    [attributes setObject:[NSFont fontWithName:IMPACT size:fontSizeForImageDimensions(image.size, bottomText)] forKey:NSFontAttributeName];
+    attributes[NSFontAttributeName] = [NSFont fontWithName:@"Impact" size:fontSizeForImageDimensions(image.size, bottomText)];
     
     bottomTextAttributes = [[NSDictionary alloc] initWithDictionary:attributes];
     
     xpos_t = (image.size.width - [[NSAttributedString alloc] initWithString:topText     attributes:topTextAttributes].size.width)    / 2;
     xpos_b = (image.size.width - [[NSAttributedString alloc] initWithString:bottomText  attributes:bottomTextAttributes].size.width) / 2;
     
-    ypos = (image.size.height * NINETY_FIVE_PERCENT) - [[topTextAttributes objectForKey:@"NSFont"] pointSize];
+    ypos = (image.size.height * 0.95) - [[topTextAttributes objectForKey:@"NSFont"] pointSize];
 
     [image lockFocus];
-    [bottomText drawAtPoint: NSMakePoint(xpos_b, BOTTOM) withAttributes:bottomTextAttributes];
-    [topText    drawAtPoint: NSMakePoint(xpos_t, ypos)   withAttributes:topTextAttributes];
+    [bottomText drawAtPoint: NSMakePoint(xpos_b, 0)    withAttributes:bottomTextAttributes];
+    [topText    drawAtPoint: NSMakePoint(xpos_t, ypos) withAttributes:topTextAttributes];
     [image unlockFocus];
 }
 
@@ -146,7 +138,7 @@ void writeTextToImage(NSImage *image, NSString *topText, NSString *bottomText)
  *          Where the image gets saved
  *
  *  Behavior:
- *      Saves the image as a PNG
+ *      Tries to save the image to a PNG. Exits on failure.
  */
 void saveImageToDisk(NSImage *imageToSave, NSString *savePath)
 {
@@ -161,7 +153,10 @@ void saveImageToDisk(NSImage *imageToSave, NSString *savePath)
     imageData  = [imageRep representationUsingType:NSPNGFileType
                                         properties:imageProps];
     
-    [imageData writeToFile:savePath atomically:NO];
+    if (![imageData writeToFile:savePath atomically:YES]) {
+        printf("Failed to write image to file!\n");
+        exit(GENERIC_ERROR);
+    }
 }
 
 /*
