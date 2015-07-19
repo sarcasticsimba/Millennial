@@ -10,7 +10,7 @@ test1:
 
 test2:
 	./mill testfiles/huge.png ./testimg_huge.png Words up top ---- Words down\
-low
+ low
 
 test_top:
 	./mill testfiles/2.png ./testimg_just_top.png Just top text ---- _
@@ -29,7 +29,7 @@ no_caption:
 
 url:
 	./mill http://i.imgur.com/yZDQfCB.jpg ./testimg_internet.png Image from the\
-internet ---- wook at da cute puppeh!
+ internet ---- wook at da cute puppeh!
 
 run:
 	make test; make test1; make test2; make test_top; make test_top_short;
