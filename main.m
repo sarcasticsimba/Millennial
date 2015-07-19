@@ -22,7 +22,6 @@
 #define MAX_FONT_SIZE 1000
 #define STROKE_WIDTH @(-5)
 #define DELIMITER @"----"
-#define GENERIC_ERROR -1
 #define MINIMUM_ARGS 6
 #define BLANK @"_"
 #define SPACE @" "
@@ -145,17 +144,18 @@ void saveImageToDisk(NSImage *imageToSave, NSString *savePath)
     NSBitmapImageRep *imageRep;
     NSDictionary *imageProps;
     NSData *imageData;
+    NSError *error;
     
-    imageData  = [imageToSave TIFFRepresentation];
-    imageRep   = [NSBitmapImageRep imageRepWithData:imageData];
-    imageProps = [NSDictionary dictionaryWithObject:@(1.0)
+    imageData   = [imageToSave TIFFRepresentation];
+    imageRep    = [NSBitmapImageRep imageRepWithData:imageData];
+    imageProps  = [NSDictionary dictionaryWithObject:@(1.0)
                                              forKey:NSImageCompressionFactor];
-    imageData  = [imageRep representationUsingType:NSPNGFileType
+    imageData   = [imageRep representationUsingType:NSPNGFileType
                                         properties:imageProps];
     
-    if (![imageData writeToFile:savePath atomically:YES]) {
-        printf("Failed to write image to file!\n");
-        exit(GENERIC_ERROR);
+    if (![imageData writeToFile:savePath options:NSDataWritingAtomic error:&error]) {
+        NSLog(@"%@\n", error);
+        exit(-1);
     }
 }
 
@@ -236,6 +236,24 @@ void fillTopAndBottomTexts(char **argv, NSString **top, NSString **bot)
     *bot = [[NSString alloc] initWithString:b];
 }
 
+void downloadImageFromURL(NSURL *url, NSString **filePath)
+{
+    NSURL *saveLocation;
+    NSString *fileName;
+    NSData *imgData;
+    NSImage *img;
+    
+    imgData = [NSData dataWithContentsOfURL:url];
+    img = [[NSImage alloc] initWithData:imgData];
+    fileName = [url lastPathComponent];
+    
+    saveLocation = [[[NSFileManager defaultManager] URLsForDirectory:NSDownloadsDirectory inDomains:NSUserDomainMask] lastObject];
+    saveLocation = [saveLocation URLByAppendingPathComponent:[NSString stringWithFormat:@"%@%@", @"meme_assets/", fileName]];
+    *filePath = [saveLocation path];
+    
+    saveImageToDisk(img, *filePath);
+}
+
 /* Pff, who needs objects? */
 int main(int argc, char *argv[])
 {
@@ -243,25 +261,32 @@ int main(int argc, char *argv[])
         NSString *filePath, *savePath,
                  *topText,  *botText;
         NSImage *img;
+        NSURL *url;
         char **itr;
         
         if (argc < MINIMUM_ARGS) {
             printf("Not enough arguments!\n");
-            return GENERIC_ERROR;
+            return -1;
         }
         
-        filePath = @(argv[1]);
+        url = [[NSURL alloc] initWithString:@(argv[1])];
+        if ([url scheme]) {
+            downloadImageFromURL(url, &filePath);
+        } else {
+            filePath = @(argv[1]);
+        }
+        
         savePath = @(argv[2]);
         itr = argv;
         
         if (!(img = [[NSImage alloc] initWithContentsOfFile:filePath])) {
             printf("File %s doesn't exist!\n", argv[1]);
-            return GENERIC_ERROR;
+            return -1;
         }
         
         if (!argumentsFormattedCorrectly(itr)) {
             printf("Incorrectly formatted arguments!\n");
-            return GENERIC_ERROR;
+            return -1;
         }
         
         fillTopAndBottomTexts(itr, &topText, &botText);
