@@ -153,7 +153,9 @@ void saveImageToDisk(NSImage *imageToSave, NSString *savePath)
     imageData   = [imageRep representationUsingType:NSPNGFileType
                                         properties:imageProps];
     
-    if (![imageData writeToFile:savePath options:NSDataWritingAtomic error:&error]) {
+    if (![imageData writeToFile:savePath
+                        options:NSDataWritingAtomic
+                          error:&error]) {
         NSLog(@"%@\n", error);
         exit(-1);
     }
@@ -236,19 +238,30 @@ void fillTopAndBottomTexts(char **argv, NSString **top, NSString **bot)
     *bot = [[NSString alloc] initWithString:b];
 }
 
+/*
+ *  downloadImageFromURL
+ *      Downloads image from the given URL, and saves the new image to
+ *      $HOME/Downloads/meme_assets/
+ *      
+ *  Parameters
+ *      NSURL *url
+ *          argv entry for template image pointing to a URL
+ *      NSString **filePath
+ *          Location to save new image, populates the NSString pointer for
+ *          further use in main()
+ *
+ *  Behavior
+ *      Downloads image. Saves image.
+ */
 void downloadImageFromURL(NSURL *url, NSString **filePath)
 {
     NSURL *saveLocation;
-    NSString *fileName;
-    NSData *imgData;
     NSImage *img;
     
-    imgData = [NSData dataWithContentsOfURL:url];
-    img = [[NSImage alloc] initWithData:imgData];
-    fileName = [url lastPathComponent];
+    img = [[NSImage alloc] initWithData:[NSData dataWithContentsOfURL:url]];
     
     saveLocation = [[[NSFileManager defaultManager] URLsForDirectory:NSDownloadsDirectory inDomains:NSUserDomainMask] lastObject];
-    saveLocation = [saveLocation URLByAppendingPathComponent:[NSString stringWithFormat:@"%@%@", @"meme_assets/", fileName]];
+    saveLocation = [saveLocation URLByAppendingPathComponent:[NSString stringWithFormat:@"%@%@", @"meme_assets/", [url lastPathComponent]]];
     *filePath = [saveLocation path];
     
     saveImageToDisk(img, *filePath);
