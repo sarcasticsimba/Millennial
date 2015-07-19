@@ -251,7 +251,8 @@ void fillTopAndBottomTexts(char **argv, NSString **top, NSString **bot)
  *          further use in main()
  *
  *  Behavior
- *      Downloads image. Saves image.
+ *      Downloads image. Saves image. One caveat: $HOME/Downloads/meme_assets/
+ *      should exist.
  */
 void downloadImageFromURL(NSURL *url, NSString **filePath)
 {
